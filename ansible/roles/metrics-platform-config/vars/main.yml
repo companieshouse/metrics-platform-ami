@@ -1,0 +1,15 @@
+required_packages: 
+  - httpd
+  - mod_ssl
+  - git
+
+env_var:
+   - export LANG='en_US.UTF-8'
+   - export LC_ALL='en_US.UTF-8'
+
+http_conf: /etc/httpd/conf/httpd.conf
+
+users: []
+#   - name: service_user
+#     group: chlservices
+#     gid: 600

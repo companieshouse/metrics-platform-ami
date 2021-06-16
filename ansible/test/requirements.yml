@@ -1,0 +1,7 @@
+---
+roles: 
+  - src: chrismeyersfsu.provision_docker
+    name: provision_docker
+  - src: https://github.com/geerlingguy/ansible-role-repo-epel
+    name: epel
+    version: "1.3.0"
