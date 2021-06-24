@@ -1,0 +1,42 @@
+---
+- name: Deploy Container
+  hosts: localhost
+  gather_facts: false
+  vars:
+    inventory:
+      - name: metrics-platform
+        image: "geerlingguy/docker-amazonlinux2-ansible"
+        # The network setting allows for idempotent testing.
+        # without it the role creates a brand new container, with it the container is re-used.
+        network_mode: bridge
+        expose: 80
+        ports: 8080:80
+        provision_docker_volumes: 
+          - /lib/modules:/lib/modules
+  roles:
+    - role: provision_docker
+      provision_docker_inventory: "{{ inventory }}"
+      provision_docker_privileged: True
+
+
+- hosts: metrics-platform
+  become: true
+  roles:
+    - name: epel
+      vars: 
+        epel_repo_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+        epel_repo_gpg_key_url: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
+  tasks:
+    - package:
+        name: "{{item}}"
+        state: present
+      loop:
+        - python3-pip
+        - git
+    - pip: 
+        umask: "0022"
+        version: 2.10.7
+        name: ansible
+        executable: pip3
+
+- import_playbook: ../playbook.yml

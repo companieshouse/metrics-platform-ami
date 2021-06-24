@@ -1,0 +1,19 @@
+required_packages: 
+  - httpd
+  - mod_ssl
+  - git
+  - npm
+
+env_var:
+   - export LANG='en_US.UTF-8'
+   - export LC_ALL='en_US.UTF-8'
+
+http_conf: /etc/httpd/conf/httpd.conf
+
+users: 
+  - name: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
+    gid: 600
+
+user_home_path: "/home/{{ httpd_user }}"
+document_root: "{{ user_home_path }}/htdocs"

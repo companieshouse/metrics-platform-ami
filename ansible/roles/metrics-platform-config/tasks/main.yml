@@ -1,0 +1,112 @@
+---
+- name: Install dependencies
+  package:
+    name: '{{ item }}'
+    state: present
+  with_items: '{{ required_packages }}'
+
+- name: install boto and botocore
+  pip:
+    name: ['boto', 'boto3', 'botocore']
+    umask: "0022"
+
+- name: Create groups
+  group:
+    name: '{{ item.group }}'
+    gid: '{{ item.gid }}'
+    state: present
+  with_items: '{{ users }}'
+
+- name: Create users
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.group }}"
+    state: present
+  loop: "{{ users }}"
+
+- name: Ensure env variables are set in app user home path
+  lineinfile:
+    path: "{{ user_home_path }}/.bash_profile"
+    line: '{{ item }}'
+  with_items: '{{ env_var }}'
+
+- name: Setup Directories
+  file:
+    state: directory
+    mode: '0755'
+    path: "{{ item }}"
+    owner: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
+  loop: 
+    - "{{ document_root }}"
+    - "{{ document_root }}/dashboard"
+    - "{{ document_root }}/dashboard/static"
+    - "{{ document_root }}/sitecommon"
+
+- name: Install Javascript dependancies
+  community.general.npm:
+    name: "{{ item }}"
+    path: "{{ js_dependancy_dir }}"
+  loop: "{{ js_dependancy_packages }}"
+
+- name: Create Deployment directories
+  file:
+    path: "{{ ansible_deploy_playbook_directory }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - templates
+
+- name: Template HTTPd conf
+  template:
+    src: httpd.conf.j2
+    dest: "{{ http_conf }}"
+    owner: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
+    mode: '0644'
+
+- name: Ensure permissions are correct
+  file:
+    # state: directory
+    # mode: mode=u=rwX,g=rX,o=rX
+    path: "{{ item }}"
+    owner: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
+    recurse: yes
+  loop:
+    - "{{ document_root }}"
+    - "/etc/httpd"
+
+- name: Copy deployment scripts to server for later use
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_deploy_playbook_directory }}/{{ item | basename }}"
+    mode: 0644
+  with_fileglob:
+    - deployment_scripts/*
+
+- name: Copy templates to server for later use
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_deploy_playbook_directory }}/templates/{{ item | basename }}"
+    mode: 0644
+  with_fileglob:
+    - "{{ role_path }}/templates/*"
+
+- name: Setup deployment playbook dependancies (1/2)
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ansible_deploy_playbook_directory }}/"
+    mode: 0644
+  loop: 
+    - requirements.yml
+
+- name: Setup deployment playbook dependancies (2/2)
+  command: "/usr/local/bin/ansible-galaxy install -f -r {{ansible_deploy_playbook_directory}}/requirements.yml"
+  register: requirements_output
+  changed_when: '"was installed successfully" in requirements_output.stdout'
+
+- name: Disable httpd (This is enabled in deployment playbook after artifacts are downloaded on start)
+  service:
+    name: httpd
+    enabled: no
