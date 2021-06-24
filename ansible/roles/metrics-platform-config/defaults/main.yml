@@ -1,2 +1,9 @@
 ---
 ansible_deploy_playbook_directory: /root
+
+httpd_user: "metrics"
+httpd_group: "chlservices"
+httpd_port: 80
+httpd_loglevel: warn
+httpd_admin_address: "support@companies-house.gov.uk"
+domain: "companieshouse.gov.uk"

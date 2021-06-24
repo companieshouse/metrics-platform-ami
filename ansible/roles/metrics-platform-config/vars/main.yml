@@ -2,6 +2,7 @@ required_packages:
   - httpd
   - mod_ssl
   - git
+  - npm
 
 env_var:
    - export LANG='en_US.UTF-8'
@@ -9,7 +10,10 @@ env_var:
 
 http_conf: /etc/httpd/conf/httpd.conf
 
-users: []
-#   - name: service_user
-#     group: chlservices
-#     gid: 600
+users: 
+  - name: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
+    gid: 600
+
+user_home_path: "/home/{{ httpd_user }}"
+document_root: "{{ user_home_path }}/htdocs"

@@ -1,10 +1,11 @@
 #
-# Based upon the NCSA server configuration files originally by Rob McCool.
-#
 # This is the main Apache server configuration file.  It contains the
 # configuration directives that give the server its instructions.
-# See <URL:http://httpd.apache.org/docs-2.0/> for detailed information about
-# the directives.
+# See <URL:http://httpd.apache.org/docs/2.2/> for detailed information.
+# In particular, see
+# <URL:http://httpd.apache.org/docs/2.2/mod/directives.html>
+# for a discussion of each configuration directive.
+#
 #
 # Do NOT simply read the instructions in here without understanding
 # what they do.  They're here only as hints or reminders.  If you are unsure
@@ -40,7 +41,7 @@
 # Don't give away too much information about all the subcomponents
 # we are running.  Comment out this line if you don't mind remote sites
 # finding out what major optional modules you are running
-ServerTokens OS
+ServerTokens Prod
 
 #
 # ServerRoot: The top of the directory tree under which the server's
@@ -48,7 +49,7 @@ ServerTokens OS
 #
 # NOTE!  If you intend to place this on an NFS (or otherwise network)
 # mounted filesystem then please read the LockFile documentation
-# (available at <URL:http://httpd.apache.org/docs-2.0/mod/mpm_common.html#lockfile>);
+# (available at <URL:http://httpd.apache.org/docs/2.2/mod/mpm_common.html#lockfile>);
 # you will save yourself a lot of trouble.
 #
 # Do NOT add a slash at the end of the directory path.
@@ -57,14 +58,16 @@ ServerRoot "/etc/httpd"
 
 #
 # PidFile: The file in which the server should record its process
-# identification number when it starts.
+# identification number when it starts.  Note the PIDFILE variable in
+# /etc/sysconfig/httpd must be set appropriately if this location is
+# changed.
 #
 PidFile run/httpd.pid
 
 #
 # Timeout: The number of seconds before receives and sends time out.
 #
-Timeout 120
+Timeout 60
 
 #
 # KeepAlive: Whether or not to allow persistent connections (more than
@@ -113,8 +116,8 @@ MaxRequestsPerChild  4000
 # ThreadsPerChild: constant number of worker threads in each server process
 # MaxRequestsPerChild: maximum number of requests a server process serves
 <IfModule worker.c>
-StartServers         2
-MaxClients         150
+StartServers         4
+MaxClients         300
 MinSpareThreads     25
 MaxSpareThreads     75 
 ThreadsPerChild     25
@@ -129,8 +132,7 @@ MaxRequestsPerChild  0
 # Change this to Listen on specific IP addresses as shown below to 
 # prevent Apache from glomming onto all bound IP addresses (0.0.0.0)
 #
-#Listen 12.34.56.78:80
-Listen 80
+Listen {{ httpd_port }}
 
 #
 # Dynamic Shared Object (DSO) Support
@@ -144,50 +146,53 @@ Listen 80
 # Example:
 # LoadModule foo_module modules/mod_foo.so
 #
-# LoadModule access_module modules/mod_access.so
-# LoadModule auth_module modules/mod_auth.so
-# LoadModule auth_anon_module modules/mod_auth_anon.so
-# LoadModule auth_dbm_module modules/mod_auth_dbm.so
-# LoadModule auth_digest_module modules/mod_auth_digest.so
-# LoadModule ldap_module modules/mod_ldap.so
-# LoadModule auth_ldap_module modules/mod_auth_ldap.so
-# LoadModule include_module modules/mod_include.so
-# LoadModule log_config_module modules/mod_log_config.so
-# LoadModule env_module modules/mod_env.so
-# LoadModule mime_magic_module modules/mod_mime_magic.so
-# LoadModule cern_meta_module modules/mod_cern_meta.so
-# LoadModule expires_module modules/mod_expires.so
-# LoadModule deflate_module modules/mod_deflate.so
-# LoadModule headers_module modules/mod_headers.so
-# LoadModule usertrack_module modules/mod_usertrack.so
-# LoadModule setenvif_module modules/mod_setenvif.so
-# LoadModule mime_module modules/mod_mime.so
-# LoadModule dav_module modules/mod_dav.so
-# LoadModule status_module modules/mod_status.so
-# LoadModule autoindex_module modules/mod_autoindex.so
-# LoadModule asis_module modules/mod_asis.so
-# LoadModule info_module modules/mod_info.so
-# LoadModule dav_fs_module modules/mod_dav_fs.so
-# LoadModule vhost_alias_module modules/mod_vhost_alias.so
-# LoadModule negotiation_module modules/mod_negotiation.so
-# LoadModule dir_module modules/mod_dir.so
-# LoadModule imap_module modules/mod_imap.so
-# LoadModule actions_module modules/mod_actions.so
-# LoadModule speling_module modules/mod_speling.so
-# LoadModule userdir_module modules/mod_userdir.so
-# LoadModule alias_module modules/mod_alias.so
-# LoadModule rewrite_module modules/mod_rewrite.so
-# LoadModule proxy_module modules/mod_proxy.so
-# LoadModule proxy_ftp_module modules/mod_proxy_ftp.so
-# LoadModule proxy_http_module modules/mod_proxy_http.so
-# LoadModule proxy_connect_module modules/mod_proxy_connect.so
-# LoadModule cache_module modules/mod_cache.so
-# LoadModule suexec_module modules/mod_suexec.so
-# LoadModule disk_cache_module modules/mod_disk_cache.so
-# LoadModule file_cache_module modules/mod_file_cache.so
-# LoadModule mem_cache_module modules/mod_mem_cache.so
-# LoadModule cgi_module modules/mod_cgi.so
-# LoadModule version_module modules/mod_version.so
+LoadModule auth_basic_module modules/mod_auth_basic.so
+LoadModule auth_digest_module modules/mod_auth_digest.so
+LoadModule authn_file_module modules/mod_authn_file.so
+LoadModule authn_core_module modules/mod_authn_core.so
+LoadModule authn_anon_module modules/mod_authn_anon.so
+LoadModule authn_dbm_module modules/mod_authn_dbm.so
+LoadModule authz_host_module modules/mod_authz_host.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule authz_owner_module modules/mod_authz_owner.so
+LoadModule authz_groupfile_module modules/mod_authz_groupfile.so
+LoadModule authz_dbm_module modules/mod_authz_dbm.so
+LoadModule include_module modules/mod_include.so
+LoadModule log_config_module modules/mod_log_config.so
+LoadModule logio_module modules/mod_logio.so
+LoadModule env_module modules/mod_env.so
+LoadModule ext_filter_module modules/mod_ext_filter.so
+LoadModule mime_magic_module modules/mod_mime_magic.so
+LoadModule expires_module modules/mod_expires.so
+LoadModule deflate_module modules/mod_deflate.so
+LoadModule headers_module modules/mod_headers.so
+LoadModule setenvif_module modules/mod_setenvif.so
+LoadModule mime_module modules/mod_mime.so
+LoadModule dav_module modules/mod_dav.so
+LoadModule status_module modules/mod_status.so
+LoadModule autoindex_module modules/mod_autoindex.so
+LoadModule info_module modules/mod_info.so
+LoadModule dav_fs_module modules/mod_dav_fs.so
+LoadModule vhost_alias_module modules/mod_vhost_alias.so
+LoadModule negotiation_module modules/mod_negotiation.so
+LoadModule dir_module modules/mod_dir.so
+LoadModule actions_module modules/mod_actions.so
+LoadModule speling_module modules/mod_speling.so
+LoadModule userdir_module modules/mod_userdir.so
+LoadModule alias_module modules/mod_alias.so
+LoadModule substitute_module modules/mod_substitute.so
+LoadModule rewrite_module modules/mod_rewrite.so
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_balancer_module modules/mod_proxy_balancer.so
+LoadModule proxy_ftp_module modules/mod_proxy_ftp.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
+LoadModule proxy_ajp_module modules/mod_proxy_ajp.so
+LoadModule proxy_connect_module modules/mod_proxy_connect.so
+LoadModule cache_module modules/mod_cache.so
+LoadModule suexec_module modules/mod_suexec.so
+LoadModule cache_disk_module modules/mod_cache_disk.so
+LoadModule cgi_module modules/mod_cgi.so
+LoadModule version_module modules/mod_version.so
 
 Include conf.modules.d/*.conf
 
@@ -196,12 +201,28 @@ Include conf.modules.d/*.conf
 #
 Include conf.d/*.conf
 
+
 #
 # ExtendedStatus controls whether Apache will generate "full" status
 # information (ExtendedStatus On) or just basic information (ExtendedStatus
 # Off) when the "server-status" handler is called. The default is Off.
 #
 #ExtendedStatus On
+
+#
+# If you wish httpd to run as a different user or group, you must run
+# httpd as root initially and it will switch.  
+#
+# User/Group: The name (or #number) of the user/group to run httpd as.
+#  . On SCO (ODT 3) use "User nouser" and "Group nogroup".
+#  . On HPUX you may not be able to use shared memory as nobody, and the
+#    suggested workaround is to create a user www and use that user.
+#  NOTE that some kernels refuse to setgid(Group) or semctl(IPC_SET)
+#  when the value of (unsigned)Group is above 60000; 
+#  don't use Group #-1 on these systems!
+#
+User {{ httpd_user }}
+Group {{ httpd_group }}
 
 ### Section 2: 'Main' server configuration
 #
@@ -216,26 +237,11 @@ Include conf.d/*.conf
 #
 
 #
-# If you wish httpd to run as a different user or group, you must run
-# httpd as root initially and it will switch.  
-#
-# User/Group: The name (or #number) of the user/group to run httpd as.
-#  . On SCO (ODT 3) use "User nouser" and "Group nogroup".
-#  . On HPUX you may not be able to use shared memory as nobody, and the
-#    suggested workaround is to create a user www and use that user.
-#  NOTE that some kernels refuse to setgid(Group) or semctl(IPC_SET)
-#  when the value of (unsigned)Group is above 60000; 
-#  don't use Group #-1 on these systems!
-#
-User apache
-Group apache
-
-#
 # ServerAdmin: Your address, where problems with the server should be
 # e-mailed.  This address appears on some server-generated pages, such
 # as error documents.  e.g. admin@your-domain.com
 #
-ServerAdmin root@localhost
+ServerAdmin {{ httpd_admin_address }}
 
 #
 # ServerName gives the name and port that the server uses to identify itself.
@@ -249,8 +255,7 @@ ServerAdmin root@localhost
 # You will have to access it by its address anyway, and this will make 
 # redirections work in a sensible way.
 #
-#ServerName new.host.name:80
-
+#ServerName www.example.com:80
 #
 # UseCanonicalName: Determines how Apache constructs self-referencing 
 # URLs and the SERVER_NAME and SERVER_PORT variables.
@@ -265,7 +270,7 @@ UseCanonicalName Off
 # documents. By default, all requests are taken from this directory, but
 # symbolic links and aliases may be used to point to other locations.
 #
-DocumentRoot "/var/www/html"
+#DocumentRoot "/var/www/html"
 
 #
 # Each directory to which Apache has access can be configured with respect
@@ -275,10 +280,10 @@ DocumentRoot "/var/www/html"
 # First, we configure the "default" to be a very restrictive set of 
 # features.  
 #
-<Directory />
-    Options FollowSymLinks
-    AllowOverride None
-</Directory>
+#<Directory />
+#   Options FollowSymLinks
+#    AllowOverride None
+#</Directory>
 
 #
 # Note that from this point forward you must specifically allow
@@ -290,7 +295,7 @@ DocumentRoot "/var/www/html"
 #
 # This should be changed to whatever you set DocumentRoot to.
 #
-<Directory "/var/www/html">
+#<Directory "/var/www/html">
 
 #
 # Possible values for the Options directive are "None", "All",
@@ -301,25 +306,25 @@ DocumentRoot "/var/www/html"
 # doesn't give it to you.
 #
 # The Options directive is both complicated and important.  Please see
-# http://httpd.apache.org/docs-2.0/mod/core.html#options
+# http://httpd.apache.org/docs/2.2/mod/core.html#options
 # for more information.
 #
-    Options Indexes FollowSymLinks
+#    Options Indexes FollowSymLinks
 
 #
 # AllowOverride controls what directives may be placed in .htaccess files.
 # It can be "All", "None", or any combination of the keywords:
 #   Options FileInfo AuthConfig Limit
 #
-    AllowOverride None
+#    AllowOverride None
 
 #
 # Controls who can get stuff from this server.
 #
-    Order allow,deny
-    Allow from all
+#    Order allow,deny
+#    Allow from all
 
-</Directory>
+#</Directory>
 
 #
 # UserDir: The name of the directory that is appended onto a user's home
@@ -339,11 +344,11 @@ DocumentRoot "/var/www/html"
     # of a username on the system (depending on home directory
     # permissions).
     #
-    UserDir disable
+    UserDir disabled
 
     #
     # To enable requests to /~user/ to serve the user's public_html
-    # directory, remove the "UserDir disable" line above, and uncomment
+    # directory, remove the "UserDir disabled" line above, and uncomment
     # the following line instead:
     # 
     #UserDir public_html
@@ -391,6 +396,7 @@ AccessFileName .htaccess
 <Files ~ "^\.ht">
     Order allow,deny
     Deny from all
+    Satisfy All
 </Files>
 
 #
@@ -398,17 +404,6 @@ AccessFileName .htaccess
 # to be found.
 #
 TypesConfig /etc/mime.types
-
-#
-# DefaultType is the default MIME type the server will use for a document
-# if it cannot otherwise determine one, such as from filename extensions.
-# If your server contains mostly text or HTML documents, "text/plain" is
-# a good value.  If most of your content is binary, such as applications
-# or images, you may want to use "application/octet-stream" instead to
-# keep browsers from trying to display binary files as though they are
-# text.
-#
-DefaultType text/plain
 
 #
 # The mod_mime_magic module allows the server to use various hints from the
@@ -436,7 +431,7 @@ HostnameLookups Off
 # The default is on; turn this off if you serve from NFS-mounted 
 # filesystems.  On some systems, turning it off (regardless of
 # filesystem) can improve performance; for details, please see
-# http://httpd.apache.org/docs-2.0/mod/core.html#enablemmap
+# http://httpd.apache.org/docs/2.2/mod/core.html#enablemmap
 #
 #EnableMMAP off
 
@@ -445,7 +440,7 @@ HostnameLookups Off
 # used to deliver files (assuming that the OS supports it). 
 # The default is on; turn this off if you serve from NFS-mounted 
 # filesystems.  Please see
-# http://httpd.apache.org/docs-2.0/mod/core.html#enablesendfile
+# http://httpd.apache.org/docs/2.2/mod/core.html#enablesendfile
 #
 #EnableSendfile off
 
@@ -463,16 +458,27 @@ ErrorLog logs/error_log
 # Possible values include: debug, info, notice, warn, error, crit,
 # alert, emerg.
 #
-LogLevel warn
+LogLevel {{ httpd_loglevel }}
 
 #
 # The following directives define some format nicknames for use with
 # a CustomLog directive (see below).
 #
-LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+# CookieIPHeader 'X-Forwarded-For'
+# CookieTracking on
+# CookieDomain .{{ domain }}
+# CookieExpires "25 months"
+# CookieName "chcookie"
+
+LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{cookie}n\" %v" proxy
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{cookie}n\" %v" combined
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
 LogFormat "%{Referer}i -> %U" referer
 LogFormat "%{User-agent}i" agent
+
+# "combinedio" includes actual counts of actual bytes received (%I) and sent (%O); this
+# requires the mod_logio module to be loaded.
+#LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
 
 #
 # The location and format of the access logfile (Common Logfile Format).
@@ -484,8 +490,8 @@ LogFormat "%{User-agent}i" agent
 #CustomLog logs/access_log common
 
 #
-# If you would like to have agent and referer logfiles, uncomment the
-# following directives.
+# If you would like to have separate agent and referer logfiles, uncomment
+# the following directives.
 #
 #CustomLog logs/referer_log referer
 #CustomLog logs/agent_log agent
@@ -494,7 +500,7 @@ LogFormat "%{User-agent}i" agent
 # For a single logfile with access, agent, and referer information
 # (Combined Logfile Format), use the following directive:
 #
-CustomLog logs/access_log combined
+#CustomLog logs/access_log combined
 
 #
 # Optionally add a line containing the server version and virtual host
@@ -519,14 +525,14 @@ ServerSignature On
 # We include the /icons/ alias for FancyIndexed directory listings.  If you
 # do not use FancyIndexing, you may comment this out.
 #
-Alias /icons/ "/var/www/icons/"
+# Alias /icons/ "/var/www/icons/"
 
-<Directory "/var/www/icons">
-    Options Indexes MultiViews
-    AllowOverride None
-    Order allow,deny
-    Allow from all
-</Directory>
+# <Directory "/var/www/icons">
+#     Options Indexes MultiViews FollowSymLinks
+#     AllowOverride None
+#     Order allow,deny
+#     Allow from all
+# </Directory>
 
 #
 # WebDAV module configuration section.
@@ -572,7 +578,7 @@ ScriptAlias /cgi-bin/ "/var/www/cgi-bin/"
 # IndexOptions: Controls the appearance of server-generated directory
 # listings.
 #
-IndexOptions FancyIndexing VersionSort NameWidth=*
+IndexOptions FancyIndexing VersionSort NameWidth=* HTMLTable Charset=UTF-8
 
 #
 # AddIcon* directives tell the server which icon to show for different
@@ -721,62 +727,13 @@ LanguagePriority en ca cs da de el eo es et fr he hr it ja ko ltz nl nn no pl pt
 ForceLanguagePriority Prefer Fallback
 
 #
-# Specify a default charset for all pages sent out. This is
-# always a good idea and opens the door for future internationalisation
-# of your web site, should you ever want it. Specifying it as
-# a default does little harm; as the standard dictates that a page
-# is in iso-8859-1 (latin1) unless specified otherwise i.e. you
-# are merely stating the obvious. There are also some security
-# reasons in browsers, related to javascript and URL parsing
-# which encourage you to always set a default char set.
+# Specify a default charset for all content served; this enables
+# interpretation of all content as UTF-8 by default.  To use the 
+# default browser choice (ISO-8859-1), or to allow the META tags
+# in HTML content to override this choice, comment out this
+# directive:
 #
 AddDefaultCharset UTF-8
-
-#
-# Commonly used filename extensions to character sets. You probably
-# want to avoid clashes with the language extensions, unless you
-# are good at carefully testing your setup after each change.
-# See http://www.iana.org/assignments/character-sets for the
-# official list of charset names and their respective RFCs.
-#
-AddCharset ISO-8859-1  .iso8859-1  .latin1
-AddCharset ISO-8859-2  .iso8859-2  .latin2 .cen
-AddCharset ISO-8859-3  .iso8859-3  .latin3
-AddCharset ISO-8859-4  .iso8859-4  .latin4
-AddCharset ISO-8859-5  .iso8859-5  .latin5 .cyr .iso-ru
-AddCharset ISO-8859-6  .iso8859-6  .latin6 .arb
-AddCharset ISO-8859-7  .iso8859-7  .latin7 .grk
-AddCharset ISO-8859-8  .iso8859-8  .latin8 .heb
-AddCharset ISO-8859-9  .iso8859-9  .latin9 .trk
-AddCharset ISO-2022-JP .iso2022-jp .jis
-AddCharset ISO-2022-KR .iso2022-kr .kis
-AddCharset ISO-2022-CN .iso2022-cn .cis
-AddCharset Big5        .Big5       .big5
-# For russian, more than one charset is used (depends on client, mostly):
-AddCharset WINDOWS-1251 .cp-1251   .win-1251
-AddCharset CP866       .cp866
-AddCharset KOI8-r      .koi8-r .koi8-ru
-AddCharset KOI8-ru     .koi8-uk .ua
-AddCharset ISO-10646-UCS-2 .ucs2
-AddCharset ISO-10646-UCS-4 .ucs4
-AddCharset UTF-8       .utf8
-
-# The set below does not map to a specific (iso) standard
-# but works on a fairly wide range of browsers. Note that
-# capitalization actually matters (it should not, but it
-# does for some browsers).
-#
-# See http://www.iana.org/assignments/character-sets
-# for a list of sorts. But browsers support few.
-#
-AddCharset GB2312      .gb2312 .gb 
-AddCharset utf-7       .utf7
-AddCharset utf-8       .utf8
-AddCharset big5        .big5 .b5
-AddCharset EUC-TW      .euc-tw
-AddCharset EUC-JP      .euc-jp
-AddCharset EUC-KR      .euc-kr
-AddCharset shift_jis   .sjis
 
 #
 # AddType allows you to add to or override the MIME configuration
@@ -800,6 +757,12 @@ AddType application/x-compress .Z
 AddType application/x-gzip .gz .tgz
 
 #
+#   MIME-types for downloading Certificates and CRLs
+#
+AddType application/x-x509-ca-cert .crt
+AddType application/x-pkcs7-crl    .crl
+
+#
 # AddHandler allows you to map certain file extensions to "handlers":
 # actions unrelated to filetype. These can be either built into the server
 # or added with the Action directive (see below)
@@ -807,17 +770,12 @@ AddType application/x-gzip .gz .tgz
 # To use CGI scripts outside of ScriptAliased directories:
 # (You will also need to add "ExecCGI" to the "Options" directive.)
 #
-#AddHandler cgi-script .cgi
+AddHandler cgi-script .cgi .pl
 
 #
 # For files that include their own HTTP headers:
 #
 #AddHandler send-as-is asis
-
-#
-# For server-parsed imagemap files:
-#
-AddHandler imap-file map
 
 #
 # For type maps (negotiated resources):
@@ -925,9 +883,12 @@ BrowserMatch "JDK/1\.0" force-response-1.0
 # Same deal with Apple's DAV filesystem and Gnome VFS support for DAV.
 #
 BrowserMatch "Microsoft Data Access Internet Publishing Provider" redirect-carefully
+BrowserMatch "MS FrontPage" redirect-carefully
 BrowserMatch "^WebDrive" redirect-carefully
-BrowserMatch "^WebDAVFS/1.[012]" redirect-carefully
-BrowserMatch "^gnome-vfs" redirect-carefully
+BrowserMatch "^WebDAVFS/1.[0123]" redirect-carefully
+BrowserMatch "^gnome-vfs/1.0" redirect-carefully
+BrowserMatch "^XML Spy" redirect-carefully
+BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
 
 #
 # Allow server status reports generated by mod_status,
@@ -975,7 +936,7 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 
 #
 # To enable a cache of proxied content, uncomment the following lines.
-# See http://httpd.apache.org/docs-2.0/mod/mod_cache.html for more details.
+# See http://httpd.apache.org/docs/2.2/mod/mod_cache.html for more details.
 #
 #<IfModule mod_disk_cache.c>
 #   CacheEnable disk /
@@ -994,21 +955,11 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 # IP addresses. This is indicated by the asterisks in the directives below.
 #
 # Please see the documentation at 
-# <URL:http://httpd.apache.org/docs-2.0/vhosts/>
+# <URL:http://httpd.apache.org/docs/2.2/vhosts/>
 # for further details before you try to setup virtual hosts.
 #
 # You may use the command line option '-S' to verify your virtual host
 # configuration.
-
-#
-# Use name-based virtual hosting.
-#
-#NameVirtualHost *:80
-#
-# NOTE: NameVirtualHost cannot be used without a port specifier 
-# (e.g. :80) if mod_ssl is being used, due to the nature of the
-# SSL protocol.
-#
 
 #
 # VirtualHost example:
@@ -1023,3 +974,71 @@ BrowserMatch "^gnome-vfs" redirect-carefully
 #    ErrorLog logs/dummy-host.example.com-error_log
 #    CustomLog logs/dummy-host.example.com-access_log common
 #</VirtualHost>
+
+### Begin Promo Domain ###
+<VirtualHost *:{{httpd_port}}>
+   ServerAdmin {{ httpd_admin_address }}
+   ServerName www.{{ domain }}:{{ httpd_port }}
+   ServerAlias {{ domain }}
+   UseCanonicalName Off
+
+   DocumentRoot "{{ document_root }}"
+
+   <Directory />
+      Options FollowSymLinks
+      AllowOverride None
+   </Directory>
+
+   RewriteEngine on
+
+   Alias /style/com/    "{{ document_root }}/sitecommon/style/"
+   Alias /images/com/   "{{ document_root }}/sitecommon/images/"
+   Alias /html/com/     "{{ document_root }}/sitecommon/html/"
+   Alias /includes/com  "{{ document_root }}/sitecommon/includes/"
+
+   <Directory ~ "{{ document_root }}/sitecommon/.*/.*">
+     # Two levels deep.... (images/en/ for example)
+     #
+     Options Includes FollowSymLinks
+     Order allow,deny
+     Allow from all
+   </Directory>
+
+   <Directory ~ "{{ document_root }}/sitecommon/.*">
+     # One level deep.... (style/style.css for example)
+     #
+     Options Includes FollowSymLinks
+     Order allow,deny
+     Allow from all
+   </Directory>
+
+   Alias /errors/ "{{ document_root }}/errors/"
+   <Directory "{{ document_root }}/errors">
+      Order allow,deny
+      Allow from all
+   </Directory>
+
+   Alias / "{{ document_root }}/"
+   <Directory "{{ document_root }}/">
+      Options +Indexes +FollowSymLinks +ExecCGI +Includes -Indexes
+      Order allow,deny
+      Allow from all
+      DirectoryIndex index.shtml index.html index.htm
+   </Directory>
+
+   <Directory "{{ document_root }}/dashboard/">
+    Header append Cache-Control must-revalidate
+   </Directory>
+
+   ErrorLog     /var/log/httpd/error_log
+   SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
+   CustomLog    /var/log/httpd/access_lb_ip_log combined env=!forwarded
+   CustomLog    /var/log/httpd/access_log proxy env=forwarded
+
+   ErrorDocument 404 /errors/error404.html
+   ErrorDocument 500 /errors/error500.html
+
+</VirtualHost>
+### End Promo Domain ###
+
+TraceEnable off

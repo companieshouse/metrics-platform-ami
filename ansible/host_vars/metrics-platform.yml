@@ -41,3 +41,9 @@ nrpe_command:
   check_users:
     script: check_users
     option: $ARG1$
+
+js_dependancy_dir: "{{ user_home_path }}"
+js_dependancy_packages: 
+  - highcharts
+  - raphael
+  - justgage

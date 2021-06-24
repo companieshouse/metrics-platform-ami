@@ -9,6 +9,8 @@
         # The network setting allows for idempotent testing.
         # without it the role creates a brand new container, with it the container is re-used.
         network_mode: bridge
+        expose: 80
+        ports: 8080:80
         provision_docker_volumes: 
           - /lib/modules:/lib/modules
   roles:
@@ -38,4 +40,3 @@
         executable: pip3
 
 - import_playbook: ../playbook.yml
-

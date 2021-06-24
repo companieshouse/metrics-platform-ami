@@ -24,11 +24,30 @@
     state: present
   loop: "{{ users }}"
 
-# - name: Ensure env variables are set in app user home path
-#   lineinfile:
-#     path: "{{ user_home_path }}/.bash_profile"
-#     line: '{{ item }}'
-#   with_items: '{{ env_var }}'
+- name: Ensure env variables are set in app user home path
+  lineinfile:
+    path: "{{ user_home_path }}/.bash_profile"
+    line: '{{ item }}'
+  with_items: '{{ env_var }}'
+
+- name: Setup Directories
+  file:
+    state: directory
+    mode: '0755'
+    path: "{{ item }}"
+    owner: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
+  loop: 
+    - "{{ document_root }}"
+    - "{{ document_root }}/dashboard"
+    - "{{ document_root }}/dashboard/static"
+    - "{{ document_root }}/sitecommon"
+
+- name: Install Javascript dependancies
+  community.general.npm:
+    name: "{{ item }}"
+    path: "{{ js_dependancy_dir }}"
+  loop: "{{ js_dependancy_packages }}"
 
 - name: Create Deployment directories
   file:
@@ -42,23 +61,27 @@
   template:
     src: httpd.conf.j2
     dest: "{{ http_conf }}"
-    owner: apache
-    group: apache
+    owner: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
     mode: '0644'
 
-- name: Copy config templates to relevant locations for later use
-  copy:
-    src: "{{ item }}"
-    dest: "{{ ansible_deploy_playbook_directory }}/{{ item }}"
-    mode: 0755
+- name: Ensure permissions are correct
+  file:
+    # state: directory
+    # mode: mode=u=rwX,g=rX,o=rX
+    path: "{{ item }}"
+    owner: "{{ httpd_user }}"
+    group: "{{ httpd_group }}"
+    recurse: yes
   loop:
-    - templates/httpd.conf.j2
+    - "{{ document_root }}"
+    - "/etc/httpd"
 
 - name: Copy deployment scripts to server for later use
   copy:
     src: "{{ item }}"
     dest: "{{ ansible_deploy_playbook_directory }}/{{ item | basename }}"
-    mode: 0755
+    mode: 0644
   with_fileglob:
     - deployment_scripts/*
 
@@ -66,7 +89,7 @@
   copy:
     src: "{{ item }}"
     dest: "{{ ansible_deploy_playbook_directory }}/templates/{{ item | basename }}"
-    mode: 0755
+    mode: 0644
   with_fileglob:
     - "{{ role_path }}/templates/*"
 
@@ -74,7 +97,7 @@
   copy:
     src: "{{ item }}"
     dest: "{{ ansible_deploy_playbook_directory }}/"
-    mode: 0755
+    mode: 0644
   loop: 
     - requirements.yml
 
@@ -83,7 +106,7 @@
   register: requirements_output
   changed_when: '"was installed successfully" in requirements_output.stdout'
 
-- name: Enable httpd
+- name: Disable httpd (This is enabled in deployment playbook after artifacts are downloaded on start)
   service:
     name: httpd
-    enabled: yes
+    enabled: no
