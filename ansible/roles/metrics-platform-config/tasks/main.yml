@@ -5,9 +5,9 @@
     state: present
   with_items: '{{ required_packages }}'
 
-- name: install boto and botocore
+- name: Install Python dependancies
   pip:
-    name: ['boto', 'boto3', 'botocore']
+    name: "{{ python_dependancies }}"
     umask: "0022"
 
 - name: Create groups
@@ -29,6 +29,14 @@
     path: "{{ user_home_path }}/.bash_profile"
     line: '{{ item }}'
   with_items: '{{ env_var }}'
+
+- name: Set SELinux Bools
+  ansible.posix.seboolean:
+    name: "{{ item }}"
+    state: yes
+    persistent: yes
+  loop: "{{ enable_selinux_bools }}"
+  when: ansible_virtualization_type != "docker"
 
 - name: Setup Directories
   file:
