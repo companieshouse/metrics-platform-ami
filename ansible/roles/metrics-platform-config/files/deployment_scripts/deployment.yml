@@ -1,2 +1,100 @@
 ---
-  
+  - name: Deploy Application artifacts
+    hosts: localhost
+    gather_facts: true
+    collections: 
+      - ch_collections.base
+    vars:
+      artifact_name: "metrics-platform"
+    roles:
+      - name: ch_collections.base.cloudwatch_agent_config
+        when: cw_log_files is defined
+    tasks:
+      - name: Get Local vars
+        include_vars: deployment_vars.yml
+
+      - name: Download the versioned release artifact from S3
+        aws_s3:
+          bucket: "{{ s3_bucket_releases }}"
+          object: "metrics-platform/{{ artifact_name }}-{{ version }}.zip"
+          dest: "/tmp/{{ artifact_name }}-{{ version }}.zip"
+          mode: get
+
+      - name: Create temporary app folder for unzip
+        file:
+          path: "/tmp/{{ artifact_name }}-{{ version }}"
+          state: directory
+      
+      - name: Unarchive the app artifact into its own folder
+        unarchive:
+          remote_src: yes
+          src: "/tmp/{{ artifact_name }}-{{ version }}.zip"
+          dest: "/tmp/{{ artifact_name }}-{{ version }}"
+      
+      - name: Move unarchived files and set permissions
+        copy:
+          src: "/tmp/{{ artifact_name }}-{{ version }}/"
+          dest: "{{ http_root }}/"
+          mode: u=rwX,g=rX,o=rX
+          owner: "{{ httpd_user }}"
+          group: "{{ httpd_group }}"
+          remote_src: yes
+
+      - name: Cleanup install files
+        file:
+          path: "{{ item }}"
+          state: absent
+        with_items:
+          - "/tmp/{{ artifact_name }}-{{ version }}"
+          - "/tmp/{{ artifact_name }}-{{ version }}.zip"
+
+      - name: Ensure files are all owned and permissions are set correctly
+        ansible.builtin.file:
+          path: "{{ item }}"
+          owner: "{{ httpd_user }}"
+          group: "{{ httpd_group }}"
+          mode: u=rwX,g=rX,o=rX
+        loop:
+          - /etc/httpd/conf/httpd.conf
+
+      - name: Create Dirs
+        file:
+          path: "{{ item }}/"
+          state: directory
+          owner: metrics
+          group: chlservices
+          mode: '0755'
+        loop:
+          - "{{ http_root }}/dashboard/images"
+          - "{{ http_root }}/dashboard/templates"
+          - "{{ http_root }}/dashboard/static"
+          - "{{ http_root }}/dashboard/static/style"
+          - "{{ http_root }}/dashboard/static/help"
+      
+      - name: Symlink common dependancies
+        ansible.builtin.file:
+          src: "{{ http_root }}/sitecommon/{{ item }}"
+          path: "{{ http_root }}/dashboard/{{ item }}/com"
+          owner: metrics
+          group: chlservices
+          state: link
+        loop:
+          - images
+          - templates
+
+      - name: Symlink common static dependancies
+        ansible.builtin.file:
+          src: "{{ http_root }}/sitecommon/{{ item }}"
+          path: "{{ http_root }}/dashboard/static/{{ item }}/com"
+          owner: metrics
+          group: chlservices
+          state: link
+        loop:
+          - style
+          - help
+
+      - name: Make sure Apache is started
+        service:
+          name: "httpd"
+          state: started
+          enabled: yes

@@ -67,8 +67,6 @@
 
 - name: Ensure permissions are correct
   file:
-    # state: directory
-    # mode: mode=u=rwX,g=rX,o=rX
     path: "{{ item }}"
     owner: "{{ httpd_user }}"
     group: "{{ httpd_group }}"
@@ -84,6 +82,12 @@
     mode: 0644
   with_fileglob:
     - deployment_scripts/*
+
+- name: Template vars for deployment plays
+  template:
+    src: deployment_vars.yml.j2
+    dest: "{{ ansible_deploy_playbook_directory }}/deployment_vars.yml"
+    mode: 0644
 
 - name: Copy templates to server for later use
   copy:
