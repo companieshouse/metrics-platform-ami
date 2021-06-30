@@ -9,6 +9,10 @@
   pip:
     name: "{{ python_dependancies }}"
     umask: "0022"
+    executable: "{{ item }}"
+  loop:
+    - pip
+    - pip3
 
 - name: Create groups
   group:
