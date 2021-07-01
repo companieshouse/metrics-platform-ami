@@ -3,6 +3,13 @@ required_packages:
   - mod_ssl
   - git
   - npm
+  - libsemanage-python
+
+python_dependancies:
+  - boto
+  - boto3
+  - botocore
+  - selinux
 
 env_var:
    - export LANG='en_US.UTF-8'
@@ -17,3 +24,6 @@ users:
 
 user_home_path: "/home/{{ httpd_user }}"
 document_root: "{{ user_home_path }}/htdocs"
+
+enable_selinux_bools:
+  - httpd_read_user_content

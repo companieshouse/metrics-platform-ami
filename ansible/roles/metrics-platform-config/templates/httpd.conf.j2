@@ -1031,12 +1031,6 @@ BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
    </Directory>
 
    ErrorLog     /var/log/httpd/error_log
-   SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
-   CustomLog    /var/log/httpd/access_lb_ip_log combined env=!forwarded
-   CustomLog    /var/log/httpd/access_log proxy env=forwarded
-
-   ErrorDocument 404 /errors/error404.html
-   ErrorDocument 500 /errors/error500.html
 
 </VirtualHost>
 ### End Promo Domain ###

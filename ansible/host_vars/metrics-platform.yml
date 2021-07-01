@@ -45,5 +45,4 @@ nrpe_command:
 js_dependancy_dir: "{{ user_home_path }}"
 js_dependancy_packages: 
   - highcharts
-  - raphael
   - justgage
