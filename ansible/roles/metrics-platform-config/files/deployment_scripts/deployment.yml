@@ -5,7 +5,7 @@
     collections: 
       - ch_collections.base
     vars:
-      artifact_name: "metrics-platform"
+      artifact_name: "performance-analysis"
     roles:
       - name: ch_collections.base.cloudwatch_agent_config
         when: cw_log_files is defined
@@ -16,7 +16,7 @@
       - name: Download the versioned release artifact from S3
         aws_s3:
           bucket: "{{ s3_bucket_releases }}"
-          object: "metrics-platform/{{ artifact_name }}-{{ version }}.zip"
+          object: "{{ artifact_name }}/{{ artifact_name }}-{{ version }}.zip"
           dest: "/tmp/{{ artifact_name }}-{{ version }}.zip"
           mode: get
 
