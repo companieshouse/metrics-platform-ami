@@ -78,6 +78,7 @@
           owner: metrics
           group: chlservices
           state: link
+          force: yes
         loop:
           - images
           - templates
@@ -89,6 +90,7 @@
           owner: metrics
           group: chlservices
           state: link
+          force: yes
         loop:
           - style
           - help
