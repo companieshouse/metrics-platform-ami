@@ -70,6 +70,7 @@
           - "{{ http_root }}/dashboard/static"
           - "{{ http_root }}/dashboard/static/style"
           - "{{ http_root }}/dashboard/static/help"
+          - "{{ dashboard_json_data_dir }}"
       
       - name: Symlink common dependancies
         ansible.builtin.file:
@@ -94,6 +95,23 @@
         loop:
           - style
           - help
+
+      - name: Download the initial json data files from S3
+        aws_s3:
+          bucket: "{{ s3_json_data_source_bucket }}"
+          object: "{{ s3_json_data_source_path }}"
+          dest: "{{ dashboard_json_data_dir }}"
+          mode: get
+
+      - name: Setup Cron to sync json data files from S3 on schedule
+        ansible.builtin.cron:
+          name: "Sync json data files from S3"
+          minute: "*/10"
+          hour: "*"
+          day: "*"
+          month: "*"
+          weekday: "*"
+          job: "/usr/bin/aws s3 sync --quiet s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
 
       - name: Make sure Apache is started
         service:
