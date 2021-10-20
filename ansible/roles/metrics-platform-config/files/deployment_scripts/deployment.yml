@@ -70,7 +70,7 @@
           - "{{ http_root }}/dashboard/static"
           - "{{ http_root }}/dashboard/static/style"
           - "{{ http_root }}/dashboard/static/help"
-          - "{{ s3_json_data_source_path }}"
+          - "{{ dashboard_json_data_dir }}"
       
       - name: Symlink common dependancies
         ansible.builtin.file:
