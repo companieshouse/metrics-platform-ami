@@ -111,7 +111,7 @@
           day: "*"
           month: "*"
           weekday: "*"
-          job: "aws s3 sync --quiet s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
+          job: "/usr/bin/aws s3 sync --quiet s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
 
       - name: Make sure Apache is started
         service:
