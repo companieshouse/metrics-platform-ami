@@ -14,25 +14,25 @@
         include_vars: deployment_vars.yml
 
       - name: Download the versioned release artifact from S3
-        aws_s3:
+        amazon.aws.aws_s3:
           bucket: "{{ s3_bucket_releases }}"
           object: "{{ artifact_name }}/{{ artifact_name }}-{{ version }}.zip"
           dest: "/tmp/{{ artifact_name }}-{{ version }}.zip"
           mode: get
 
       - name: Create temporary app folder for unzip
-        file:
+        ansible.builtin.file:
           path: "/tmp/{{ artifact_name }}-{{ version }}"
           state: directory
       
       - name: Unarchive the app artifact into its own folder
-        unarchive:
+        ansible.builtin.unarchive:
           remote_src: yes
           src: "/tmp/{{ artifact_name }}-{{ version }}.zip"
           dest: "/tmp/{{ artifact_name }}-{{ version }}"
       
       - name: Move unarchived files and set permissions
-        copy:
+        ansible.builtin.copy:
           src: "/tmp/{{ artifact_name }}-{{ version }}/"
           dest: "{{ http_root }}/"
           mode: u=rwX,g=rX,o=rX
@@ -41,7 +41,7 @@
           remote_src: yes
 
       - name: Cleanup install files
-        file:
+        ansible.builtin.file:
           path: "{{ item }}"
           state: absent
         with_items:
@@ -58,7 +58,7 @@
           - /etc/httpd/conf/httpd.conf
 
       - name: Create Dirs
-        file:
+        ansible.builtin.file:
           path: "{{ item }}/"
           state: directory
           owner: metrics
@@ -97,11 +97,8 @@
           - help
 
       - name: Download the initial json data files from S3
-        aws_s3:
-          bucket: "{{ s3_json_data_source_bucket }}"
-          object: "{{ s3_json_data_source_path }}"
-          dest: "{{ dashboard_json_data_dir }}"
-          mode: get
+        ansible.builtin.command:
+          cmd: "/usr/bin/aws s3 sync --quiet s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
 
       - name: Setup Cron to sync json data files from S3 on schedule
         ansible.builtin.cron:
@@ -114,7 +111,7 @@
           job: "/usr/bin/aws s3 sync --quiet s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
 
       - name: Make sure Apache is started
-        service:
+        ansible.builtin.service:
           name: "httpd"
           state: started
           enabled: yes
