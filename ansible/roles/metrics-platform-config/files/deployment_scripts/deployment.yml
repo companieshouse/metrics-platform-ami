@@ -98,7 +98,7 @@
 
       - name: Download the initial json data files from S3
         ansible.builtin.command:
-          cmd: "/usr/bin/aws s3 sync --quiet s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
+          cmd: "/usr/bin/aws s3 cp --quiet --recursive s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
 
       - name: Setup Cron to sync json data files from S3 on schedule
         ansible.builtin.cron:
@@ -108,7 +108,7 @@
           day: "*"
           month: "*"
           weekday: "*"
-          job: "/usr/bin/aws s3 sync --quiet s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
+          job: "/usr/bin/aws s3 cp --quiet --recursive s3://{{ s3_json_data_source_bucket }}{{ s3_json_data_source_path }} {{ dashboard_json_data_dir }}"
 
       - name: Make sure Apache is started
         ansible.builtin.service:
