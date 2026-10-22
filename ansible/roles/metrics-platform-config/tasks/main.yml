@@ -1,4 +1,9 @@
 ---
+
+- name: Wait for cloud-init to complete
+  command: cloud-init status --wait
+  changed_when: false
+
 - name: Install dependencies
   package:
     name: '{{ item }}'
