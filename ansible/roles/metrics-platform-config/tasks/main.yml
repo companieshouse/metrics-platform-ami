@@ -1,4 +1,25 @@
 ---
+
+
+- name: Show running yum/rpm processes
+  shell: |
+    echo "=== processes ==="
+    ps -ef | grep -E 'yum|dnf|rpm|cloud-init' | grep -v grep || true
+
+    echo "=== yum.pid ==="
+    if [ -f /var/run/yum.pid ]; then
+      pid=$(cat /var/run/yum.pid)
+      echo "yum.pid=$pid"
+      ps -fp "$pid" || true
+    else
+      echo "No yum.pid file"
+    fi
+  register: pkg_debug
+  changed_when: false
+
+- debug:
+    var: pkg_debug.stdout_lines
+
 - name: Install dependencies
   package:
     name: "{{ required_packages }}"
