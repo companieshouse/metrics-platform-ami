@@ -3,5 +3,4 @@
   become: true
   gather_facts: yes
   roles:
-    - ch_collections.base.nagios_nrpe_client
     - metrics-platform-config
